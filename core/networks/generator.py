@@ -8,8 +8,8 @@ from .transformer import (
     TransformerDecoderLayer,
     TransformerDecoder,
 )
-from core.utils import _reset_parameters
-from core.networks.self_attention_pooling import SelfAttentionPooling
+from ..utils import _reset_parameters
+from .self_attention_pooling import SelfAttentionPooling
 
 
 # class ContentEncoder(nn.Module):

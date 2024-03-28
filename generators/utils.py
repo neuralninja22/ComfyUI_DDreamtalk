@@ -17,12 +17,12 @@ def obtain_seq_index(index, num_frames, radius):
 
 
 @torch.no_grad()
-def get_netG(checkpoint_path, device):
+def get_netG(checkpoint_path, device, renderer_conf_path = "generators/renderer_conf.yaml"):
     import yaml
 
-    from generators.face_model import FaceGenerator
+    from .face_model import FaceGenerator
 
-    with open("generators/renderer_conf.yaml", "r") as f:
+    with open(renderer_conf_path, "r") as f:
         renderer_config = yaml.load(f, Loader=yaml.FullLoader)
 
     renderer = FaceGenerator(**renderer_config).to(device)

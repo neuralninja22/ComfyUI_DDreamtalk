@@ -5,8 +5,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import generators.flow_util as flow_util
-from generators.base_function import LayerNorm2d, ADAINHourglass, FineEncoder, FineDecoder
+from .flow_util import convert_flow_to_deformation, warp_image
+from .base_function import LayerNorm2d, ADAINHourglass, FineEncoder, FineDecoder
 
 class FaceGenerator(nn.Module):
     def __init__(
@@ -94,8 +94,8 @@ class WarpingNet(nn.Module):
         output = self.hourglass(input_image, descriptor)
         final_output['flow_field'] = self.flow_out(output)
 
-        deformation = flow_util.convert_flow_to_deformation(final_output['flow_field'])
-        final_output['warp_image'] = flow_util.warp_image(input_image, deformation)
+        deformation = convert_flow_to_deformation(final_output['flow_field'])
+        final_output['warp_image'] = warp_image(input_image, deformation)
         return final_output
 
 

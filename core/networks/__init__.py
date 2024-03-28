@@ -1,9 +1,9 @@
-from core.networks.generator import (
+from .generator import (
     StyleEncoder,
     Decoder,
     ContentW2VEncoder,
 )
-from core.networks.disentangle_decoder import DisentangleDecoder
+from .disentangle_decoder import DisentangleDecoder
 
 
 def get_network(name: str):

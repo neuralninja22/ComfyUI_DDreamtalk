@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from core.networks.mish import Mish
+from .mish import Mish
 
 
 class SelfAttentionPooling(nn.Module):

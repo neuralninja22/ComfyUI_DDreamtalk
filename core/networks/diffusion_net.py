@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn.functional as F
 from torch.nn import Module
-from core.networks.diffusion_util import VarianceSchedule
+from .diffusion_util import VarianceSchedule
 import numpy as np
 
 

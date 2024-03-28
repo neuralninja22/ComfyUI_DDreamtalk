@@ -10,7 +10,7 @@ import torch
 from torch import nn
 from scipy.io import loadmat
 
-from configs.default import get_cfg_defaults
+from ..configs.default import get_cfg_defaults
 import dlib
 import cv2
 

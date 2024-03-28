@@ -1,0 +1,4 @@
+*.pyc
+checkpoints/*
+output_video/*
+tmp/*

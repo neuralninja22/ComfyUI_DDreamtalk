@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from core.networks.dynamic_conv import DynamicConv
+from .dynamic_conv import DynamicConv
 
 
 class DynamicLinear(nn.Module):
