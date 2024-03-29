@@ -84,6 +84,7 @@ _C.CF_GUIDANCE.SCALE = 1.0
 
 _C.INFERENCE = CN()
 _C.INFERENCE.CHECKPOINT = "checkpoints/denoising_network.pth"
+_C.INFERENCE.RENDERER = "checkpoints/renderer.pt"
 
 
 def get_cfg_defaults():

@@ -15,4 +15,5 @@ torchaudio
 urllib3
 transformers
 dlib
-pydub
+soundfile
+huggingface_hub

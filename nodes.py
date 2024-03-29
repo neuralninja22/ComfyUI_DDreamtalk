@@ -9,11 +9,11 @@ import subprocess
 import torch
 import torchaudio
 import folder_paths
+import soundfile as sf
 
 import numpy as np
 from PIL import Image
 
-from pydub import AudioSegment
 from transformers import Wav2Vec2Processor
 from transformers.models.wav2vec2.modeling_wav2vec2 import Wav2Vec2Model
 
@@ -27,6 +27,14 @@ from .core.utils import (
     get_wav2vec_audio_window,
 )
 from .generators.utils import get_netG, render_video
+
+
+class AnyType(str):
+    def __ne__(self, __value: object) -> bool:
+        return False
+
+# Our any instance wants to be a wildcard string
+any = AnyType("*")
 
 
 def get_ext_dir(subpath=None, mkdir=False):
@@ -189,7 +197,7 @@ def cv_frame_generator(video):
 class LoadAudio:
     @classmethod
     def INPUT_TYPES(s):
-        audio_extensions = ['mp3','wav','m4a','webm','mp4','mkv']
+        audio_extensions = ["wav", "mp3", "flac"]
         input_dir = folder_paths.get_input_directory()
         files = []
         for f in os.listdir(input_dir):
@@ -199,35 +207,25 @@ class LoadAudio:
                     files.append(f)
         return {"required": {
                     "audio": (sorted(files),),
-                    "sample_rate": ("INT", {"default": 16000, "min": 1, "max": 10000000000, "step": 1}),
-                    "channels": ("INT", {"default": 1, "min": 1, "max": 2, "step": 1}),
                      },}
 
     CATEGORY = "Dreamtalk"
 
-    RETURN_TYPES = ("AUDIO", "INT", "INT",)
-    RETURN_NAMES = ("audio", "sample_rate", "channels",)
+    RETURN_TYPES = (any, "INT",)
+    RETURN_NAMES = ("audio", "sample_rate",)
     FUNCTION = "load_audio"
 
 
-    def load_audio(self, audio, sample_rate, channels):
+    def load_audio(self, audio):
         file = folder_paths.get_annotated_filepath(audio)
         ext = file.lower().split('.')[-1] if '.' in file else 'null'
 
-        if ext in ['mp3','wav','m4a','webm','mp4','mkv']:
-            audio_seg = AudioSegment.from_file(file)
-            audio_seg = audio_seg.set_frame_rate(sample_rate)
-            audio_seg = audio_seg.set_channels(channels) 
-
-            sampled_audio_data = io.BytesIO()
-            audio_seg.export(sampled_audio_data, format='wav')
-
-            sampled_audio_data.seek(0)
-            audio_tensor, _ = torchaudio.load(sampled_audio_data)
+        if ext in ["wav", "mp3", "flac"]:
+            audio_samples, sample_rate =sf.read(file)
         else:
             raise Exception(f'File format "{ext}" is not supported')
 
-        return (audio_tensor, file, sample_rate, channels)
+        return (list(audio_samples), sample_rate)
     
     @classmethod
     def IS_CHANGED(self, audio, **kwargs):
@@ -247,7 +245,7 @@ class LoadAudio:
 class DreamTalk:
     @classmethod
     def INPUT_TYPES(s):
-        audio_extensions = ['mp3','wav','m4a','webm','mp4','mkv']
+        audio_extensions = ["wav", "mp3", "flac"]
         input_dir = folder_paths.get_input_directory()
         files = []
         for f in os.listdir(input_dir):
@@ -283,8 +281,27 @@ class DreamTalk:
 
         cfg = get_cfg_defaults()
         cfg.CF_GUIDANCE.SCALE = cfg_scale
-        cfg.INFERENCE.CHECKPOINT = os.path.join(get_ext_dir('checkpoints'), 'denoising_network.pth')
+
+        checkpoint_path = os.path.join(get_ext_dir('checkpoints'), 'denoising_network.pth')
+        if os.path.isfile(checkpoint_path):
+            cfg.INFERENCE.CHECKPOINT = checkpoint_path
+        else:
+            cfg.INFERENCE.CHECKPOINT = os.path.join(folder_paths.models_dir, 'dreamtalk/denoising_network.pth')
+        
+        renderer_path = os.path.join(get_ext_dir('checkpoints'), 'renderer.pt')
+        if os.path.isfile(renderer_path):
+            cfg.INFERENCE.RENDERER = renderer_path
+        else:
+            cfg.INFERENCE.RENDERER = os.path.join(folder_paths.models_dir, 'dreamtalk/renderer.pt')
+
         cfg.freeze()
+
+        if not os.path.isfile(cfg.INFERENCE.CHECKPOINT):
+            from huggingface_hub import snapshot_download
+            snapshot_download(repo_id="cncbec/dreamtalk", allow_patterns=["denoising_network.pth"], local_dir=os.path.dirname(cfg.INFERENCE.CHECKPOINT), local_dir_use_symlinks=False)
+        if not os.path.isfile(cfg.INFERENCE.RENDERER):
+            from huggingface_hub import snapshot_download
+            snapshot_download(repo_id="cncbec/dreamtalk", allow_patterns=["renderer.pt"], local_dir=os.path.dirname(cfg.INFERENCE.RENDERER), local_dir_use_symlinks=False)
 
         output_name = ''.join(random.choice("abcdefghijklmnopqrstupvxyz") for _ in range(5))
         tmp_dir = folder_paths.get_temp_directory()
@@ -354,7 +371,7 @@ class DreamTalk:
                 max_audio_len=max_gen_len,
             )
             # get renderer
-            renderer_path = os.path.join(get_ext_dir('checkpoints'), 'renderer.pt')
+            renderer_path = cfg.INFERENCE.RENDERER
             renderer_conf_path = os.path.join(get_ext_dir('generators'), 'renderer_conf.yaml')
             renderer = get_netG(renderer_path, device, renderer_conf_path)
             # render video
