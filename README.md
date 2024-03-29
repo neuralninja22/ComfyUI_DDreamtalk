@@ -3,6 +3,7 @@
 Unofficial [Dreamtalk](https://github.com/ali-vilab/dreamtalk) support for [ComfyUI](https://github.com/comfyanonymous/ComfyUI).
 
 ## Important Updates
+- **2024/03/29:** Added installation from ComfyUI Manager
 - **2024/03/28:** Added ComfyUI nodes and workflow examples
 
 ## Basic Workflow
@@ -16,7 +17,7 @@ This [workflow](examples/dream_talk_advanced.json) shows the advanced usage on m
  ![](examples/dream_talk_advanced.jpg)
 
 ## Installation
-- Install from ComfyUI Manager (WIP)
+- Install from ComfyUI Manager (search for `dreamtalk`, make sure `ffmpeg` is installed)
 
 - Download or git clone this repository into the ComfyUI/custom_nodes/ directory and run:
 ```
