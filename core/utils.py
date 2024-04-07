@@ -450,6 +450,7 @@ def crop_src_image(src_img, save_img, increase_ratio, detector=None):
         img = img[bbox[1] : bbox[3], bbox[0] : bbox[2]]
         img = cv2.resize(img, (256, 256))
         cv2.imwrite(save_img, img)
+        return bbox
     else:
         raise ValueError("No face detected in the input image")
         # img = cv2.resize(img, (256, 256))

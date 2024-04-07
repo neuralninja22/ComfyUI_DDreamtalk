@@ -245,7 +245,7 @@ class LoadAudio:
 class DreamTalk:
     @classmethod
     def INPUT_TYPES(s):
-        audio_extensions = ["wav", "mp3", "flac"]
+        audio_extensions = ["wav", "mp3", "flac", "mp4"]
         input_dir = folder_paths.get_input_directory()
         files = []
         for f in os.listdir(input_dir):
@@ -269,8 +269,8 @@ class DreamTalk:
 
     CATEGORY = "Dreamtalk"
 
-    RETURN_TYPES = ("IMAGE", "INT", "INT", )
-    RETURN_NAMES = ("images", "count", "frame_rate", )
+    RETURN_TYPES = ("IMAGE", "INT", "FLOAT", "STRING", "INT", "INT", "INT", "INT")
+    RETURN_NAMES = ("images", "count", "frame_rate", "audio_path", "crop_width", "crop_height", "crop_x", "crop_y")
     FUNCTION = "inference"
 
 
@@ -347,10 +347,21 @@ class DreamTalk:
             img.save(src_img_path)
             break
 
+        bbox = None
         if img_crop:
-            crop_src_image(src_img_path, cropped_img_path, 0.4)
+            bbox = crop_src_image(src_img_path, cropped_img_path, 0.4)
         else:
             shutil.copy(src_img_path, cropped_img_path)
+
+        crop_width = 0
+        crop_height = 0
+        crop_x = 0
+        crop_y = 0
+        if bbox:
+            crop_width = bbox[2] - bbox[0]
+            crop_height = bbox[3] - bbox[1]
+            crop_x = bbox[0]
+            crop_y = bbox[1]
 
         style_clip_path = os.path.join(get_ext_dir('data/style_clip/3DMM'), style_clip)
         pose_path = os.path.join(get_ext_dir('data/pose'), pose)
@@ -394,7 +405,7 @@ class DreamTalk:
         images = torch.from_numpy(np.fromiter(gen, np.dtype((np.float32, (height, width, 3)))))
         if len(images) == 0:
             raise RuntimeError("No frames generated")
-        return (images, len(images), 25)
+        return (images, len(images), 25, wav_path, crop_width, crop_height, crop_x, crop_y)
 
 NODE_CLASS_MAPPINGS = {
     "D_LoadAudio": LoadAudio,
