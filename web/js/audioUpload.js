@@ -92,7 +92,7 @@ ComfyWidgets.AUDIOUPLOAD = audioUpload;
 app.registerExtension({
 	name: "Dreamtalk.UploadAudio",
 	async beforeRegisterNodeDef(nodeType, nodeData, app) {
-		if (nodeData?.name == "D_LoadAudio") {
+		if (nodeData?.name == "DD_LoadAudio") {
 			nodeData.input.required.upload = ["AUDIOUPLOAD"];
 		}
 	},

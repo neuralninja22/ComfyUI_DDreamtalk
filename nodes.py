@@ -408,11 +408,11 @@ class DreamTalk:
         return (images, len(images), 25, wav_path, crop_width, crop_height, crop_x, crop_y)
 
 NODE_CLASS_MAPPINGS = {
-    "D_LoadAudio": LoadAudio,
-    "D_DreamTalk": DreamTalk,
+    "DD_LoadAudio": LoadAudio,
+    "DD_DreamTalk": DreamTalk,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "D_LoadAudio": "Load Audio",
-    "D_DreamTalk": "Dream Talk",
+    "DD_LoadAudio": "Load Audio",
+    "DD_DreamTalk": "Dream Talk",
 }
