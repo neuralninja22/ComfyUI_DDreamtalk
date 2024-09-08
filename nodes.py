@@ -198,16 +198,13 @@ class LoadAudio:
     @classmethod
     def INPUT_TYPES(s):
         audio_extensions = ["wav", "mp3", "flac"]
-        input_dir = folder_paths.get_input_directory()
-        files = []
-        for f in os.listdir(input_dir):
-            if os.path.isfile(os.path.join(input_dir, f)):
-                file_parts = f.split('.')
-                if len(file_parts) > 1 and (file_parts[-1] in audio_extensions):
-                    files.append(f)
         return {"required": {
-                    "audio": (sorted(files),),
-                     },}
+                    "audio": ("STRING",{
+                        "multiline": True,
+                        "default": "",
+                        "placeholder": "Deprecated. Please write the path directly to the DreamTalk node",
+                    }),
+        },}
 
     CATEGORY = "Dreamtalk"
 
@@ -245,21 +242,16 @@ class LoadAudio:
 class DreamTalk:
     @classmethod
     def INPUT_TYPES(s):
-        audio_extensions = ["wav", "mp3", "flac", "mp4"]
-        input_dir = folder_paths.get_input_directory()
-        files = []
-        for f in os.listdir(input_dir):
-            if os.path.isfile(os.path.join(input_dir, f)):
-                file_parts = f.split('.')
-                if len(file_parts) > 1 and (file_parts[-1] in audio_extensions):
-                    files.append(f)
         style_clip_dir = get_ext_dir('data/style_clip/3DMM')
         style_clip_files = [f for f in os.listdir(style_clip_dir) if os.path.isfile(os.path.join(style_clip_dir, f))]
         pose_dir = get_ext_dir('data/pose')
         pose_files = [f for f in os.listdir(pose_dir) if os.path.isfile(os.path.join(pose_dir, f))]
         return {"required": {
                     "image": ("IMAGE", ),
-                    "audio": (sorted(files), ),
+                    "audio": ("STRING", {
+                        "default": "input/hello.mp3",
+                        "placeholder": "audio file path",
+                    }),
                     "style_clip": (sorted(style_clip_files), {"default": "M030_front_neutral_level1_001.mat"}),
                     "pose": (sorted(pose_files),  {"default": "RichardShelby_front_neutral_level1_001.mat"}),
                     "cfg_scale": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 10.0, "step": 0.01}),
@@ -308,7 +300,17 @@ class DreamTalk:
         os.makedirs(tmp_dir, exist_ok=True)
 
         # get audio in 16000Hz
-        wav_path = os.path.join(folder_paths.get_input_directory(), audio)
+        input_dir = folder_paths.get_input_directory()
+        audio_path = audio
+
+        # audio_path가 절대 경로인지 확인
+        if os.path.isabs(audio_path):
+            # 절대 경로인 경우 그대로 사용
+            wav_path = audio_path
+        else:
+            # 상대 경로인 경우 input_dir과 결합
+            wav_path = os.path.join(input_dir, audio_path)
+
         wav_16k_path = os.path.join(tmp_dir, f"{output_name}_16K.wav")
         command = f"ffmpeg -y -i {wav_path} -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 {wav_16k_path}"
         subprocess.run(command.split())
@@ -413,6 +415,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "DD_LoadAudio": "Load Audio",
+    "DD_LoadAudio": "Load Audio (Deprecated)",
     "DD_DreamTalk": "Dream Talk",
 }
